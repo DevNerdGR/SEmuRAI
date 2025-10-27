@@ -5,7 +5,7 @@ mcp = FastMCP(name="SEmuRAI")
 
 bridge = None
 emuHelper = None
-
+breakpoints = set()
 
 @mcp.tool
 def greet(name : str) -> str:
@@ -21,7 +21,9 @@ def setupEmulator():
     try:
         global bridge
         global emuHelper
+        global breakpoints
         
+        breakpoints = set()
         bridge = ghidra_bridge.GhidraBridge(namespace=globals())
         
         currentProgram = bridge.remote_eval("currentProgram") # Sanity check    
@@ -103,6 +105,81 @@ def writeMemory(startAddress : str, bytesToWrite : str) -> None:
 
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
+
+@mcp.tool
+def setBreakpoint(address : str) -> None:
+    """Establishes a breakpoint at the specified address. Make sure address starts with 0x"""
+    global bridge
+    global emuHelper
+    global breakpoints
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        currentProgram = bridge.remote_eval("currentProgram")
+        addressFactory = currentProgram.getAddressFactory()
+        emuHelper.setBreakpoint(addressFactory.getAddress(address))
+        breakpoints.add(address)
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
+@mcp.tool
+def removeBreakpoint(address : str) -> None:
+    """Removes breakpoint at the specified address. Make sure address starts with 0x"""
+    global bridge
+    global emuHelper
+    global breakpoints
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        currentProgram = bridge.remote_eval("currentProgram")
+        addressFactory = currentProgram.getAddressFactory()
+        breakpoints.remove(address)
+        emuHelper.clearBreakpoint(addressFactory.getAddress(address))
+    except KeyError as e:
+        return f"Breakpoint not set at {address}"
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
+@mcp.tool
+def getBreakpoints() -> set:
+    """Returns set containing addresses of breakpoints."""
+    global bridge
+    global emuHelper
+    global breakpoints
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        return breakpoints
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
+@mcp.tool
+def stepInstruction() -> None:
+    """Steps emulation by one instruction. To make this meaningful, ensure that memory/registers and breakpoints are set up."""
+    global bridge
+    global emuHelper
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        tm = bridge.remote_import("ghidra.util.task.TaskMonitor")
+        emuHelper.step(tm.DUMMY)
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
+
+@mcp.tool
+def run() -> None:
+    """Starts emulation from address pointed to by program counter/instruction pointer. Will stop when breakpoint hit. To make this meaningful, ensure that memory/registers and breakpoints are set up."""
+    global bridge
+    global emuHelper
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        tm = bridge.remote_import("ghidra.util.task.TaskMonitor")
+        emuHelper.run(tm.DUMMY)
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
 
 if __name__ == "__main__":
     mcp.run()
