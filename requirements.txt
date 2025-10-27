@@ -1,0 +1,2 @@
+fastmcp
+ghidra_bridge
