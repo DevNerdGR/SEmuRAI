@@ -168,7 +168,7 @@ def stepInstruction() -> None:
 
 
 @mcp.tool
-def run() -> None:
+def run() -> str:
     """Starts emulation from address pointed to by program counter/instruction pointer. Will stop when breakpoint hit. To make this meaningful, ensure that memory/registers and breakpoints are set up."""
     global bridge
     global emuHelper
@@ -176,10 +176,28 @@ def run() -> None:
         if bridge is None or emuHelper is None:
             return "Setup required before usage. Run setupEmulator()"
         tm = bridge.remote_import("ghidra.util.task.TaskMonitor")
-        emuHelper.run(tm.DUMMY)
+        done = emuHelper.run(tm.DUMMY)
+        return "Emulation started. Ensure enough time has passed before reading results to ensure emulation runs to completion."
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
 
+@mcp.tool
+def getLastError() -> str:
+    """Diagnostic function that provides information if emulation fails"""
+    global bridge
+    global emuHelper
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        return emuHelper.getLastError()
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
 
+@mcp.tool
+def hexToDecimal(hexValue : str) -> int:
+    """Converts hexadecimal value into its decimal representation. Hexadecimal value must start with 0x. Use this whenever you need to do a conversion, do not do it on your own."""
+    if not hexValue.startswith("0x"):
+        return "Argument needs to start with 0x"
+    return int(hexValue.replace("0x", "").strip(), 16)  
 if __name__ == "__main__":
     mcp.run()
