@@ -8,7 +8,6 @@
       "command": "python",
       "args": ["absolute/path/to/server.py"]
     }
-  }
 }
 
 ```
