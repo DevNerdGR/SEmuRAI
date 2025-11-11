@@ -17,6 +17,8 @@ def setupEmulator():
     """
     RUN THIS BEFORE ANY EMULATION WORK!
     Running this will also cause emulation session to reset.
+
+    After setting up the emulator, remember to hook std library calls using hookStdFunction MCP function to properly emulate std library functions.
     """
     try:
         global bridge
@@ -85,6 +87,23 @@ def readMemory(startAddress : str, length : int) -> str:
         addr = addressFactory.getAddress(startAddress)
 
         return "".join([f"{(b & 0xff):02x}" for b in emuHelper.readMemory(addr, length)])
+
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+
+@mcp.tool
+def readNullTerminatedString(startAddress : str, maxLength=100) -> str:
+    """Reads bytes up to n bytes (specified by maxLength parameter) or when null character is read, whichever is ealier, from startAddress. Bytes are converted to characters and subsequently a string. Make sure startAddress starts with 0x."""
+    global bridge
+    global emuHelper
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+        currentProgram = bridge.remote_eval("currentProgram")
+        addressFactory = currentProgram.getAddressFactory()
+        addr = addressFactory.getAddress(startAddress)
+
+        return emuHelper.readNullTerminatedString(addr, maxLength)
 
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
@@ -182,6 +201,27 @@ def run() -> str:
         return f"Error connecting to Ghidra: {str(e)}"
 
 @mcp.tool
+def hookStdFunction(address : str, functionName : str) -> str:
+    """Hooks standard library function calls and emulates their functionlity. Pass the name of the respective functions (e.g. printf) to the functionName parameter."""
+    global bridge
+    global emuHelper
+    try:
+        if bridge is None or emuHelper is None:
+            return "Setup required before usage. Run setupEmulator()"
+    
+        currentProgram = bridge.remote_eval("currentProgram")
+        addressFactory = currentProgram.getAddressFactory()
+
+        if functionName.lower().strip() == "printf":
+            addr = addressFactory.getAddress(hex(emuHelper.readRegister("RDI")))
+            return f"Printed string: {emuHelper.readNullTerminatedString(addr, 500)}"
+        else:
+            return f"Hook unavailable for function {functionName}"
+    except Exception as e:
+        return f"Error connecting to Ghidra: {str(e)}"
+    
+
+@mcp.tool
 def getLastError() -> str:
     """Diagnostic function that provides information if emulation fails"""
     global bridge
@@ -199,5 +239,6 @@ def hexToDecimal(hexValue : str) -> int:
     if not hexValue.startswith("0x"):
         return "Argument needs to start with 0x"
     return int(hexValue.replace("0x", "").strip(), 16)  
+
 if __name__ == "__main__":
     mcp.run()

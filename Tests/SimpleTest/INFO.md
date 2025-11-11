@@ -5,3 +5,6 @@ A C program designed to test the functionality of SEmuRAI.
 - Manipulating breakpoints
 - Reading from & writing to registers
 - Running emulation
+
+
+need to restart mcp??
