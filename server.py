@@ -34,6 +34,11 @@ def setupEmulator():
         
         EmulatorHelper = bridge.remote_import("ghidra.app.emulator.EmulatorHelper")
         emuHelper = EmulatorHelper(currentProgram)
+
+        # stdlib function hooking
+        fm = currentProgram.getFunctionManager()
+        #funcs = 
+
         return "Emulator session set up."
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
