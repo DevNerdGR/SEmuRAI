@@ -1,11 +1,13 @@
 from fastmcp import FastMCP
 import ghidra_bridge
+from hooks import HookManager
 
 mcp = FastMCP(name="SEmuRAI")
 
 bridge = None
 emuHelper = None
 breakpoints = set()
+hookManager = None
 
 @mcp.tool
 def greet(name : str) -> str:
@@ -24,6 +26,7 @@ def setupEmulator():
         global bridge
         global emuHelper
         global breakpoints
+        global hookManager
         
         breakpoints = set()
         bridge = ghidra_bridge.GhidraBridge(namespace=globals())
@@ -34,11 +37,13 @@ def setupEmulator():
         
         EmulatorHelper = bridge.remote_import("ghidra.app.emulator.EmulatorHelper")
         emuHelper = EmulatorHelper(currentProgram)
+        hookManager = HookManager(emuHelper)
 
-        # stdlib function hooking
-        fm = currentProgram.getFunctionManager()
-        #funcs = 
-
+        addressFactory = currentProgram.getAddressFactory()
+        for addr in hookManager.getHookedAddresses:
+            emuHelper.setBreakpoint(addressFactory.getAddress(addr))
+        
+        
         return "Emulator session set up."
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
@@ -196,35 +201,23 @@ def run() -> str:
     """Starts emulation from address pointed to by program counter/instruction pointer. Will stop when breakpoint hit. To make this meaningful, ensure that memory/registers and breakpoints are set up."""
     global bridge
     global emuHelper
+    global hookManager
     try:
         if bridge is None or emuHelper is None:
             return "Setup required before usage. Run setupEmulator()"
         tm = bridge.remote_import("ghidra.util.task.TaskMonitor")
-        done = emuHelper.run(tm.DUMMY)
-        return "Emulation started. Ensure enough time has passed before reading results to ensure emulation runs to completion."
-    except Exception as e:
-        return f"Error connecting to Ghidra: {str(e)}"
-
-@mcp.tool
-def hookStdFunction(address : str, functionName : str) -> str:
-    """Hooks standard library function calls and emulates their functionlity. Pass the name of the respective functions (e.g. printf) to the functionName parameter."""
-    global bridge
-    global emuHelper
-    try:
-        if bridge is None or emuHelper is None:
-            return "Setup required before usage. Run setupEmulator()"
-    
-        currentProgram = bridge.remote_eval("currentProgram")
-        addressFactory = currentProgram.getAddressFactory()
-
-        if functionName.lower().strip() == "printf":
-            addr = addressFactory.getAddress(hex(emuHelper.readRegister("RDI")))
-            return f"Printed string: {emuHelper.readNullTerminatedString(addr, 500)}"
+        successful = emuHelper.run(tm.DUMMY)
+        if successful:
+            if emuHelper.readRegister(emuHelper.getPCRegister().getName()) in hookManager.getHookedAddresses:
+                res = hookManager.process(emuHelper.readRegister(emuHelper.getPCRegister().getName()))
+                return res
+            else:
+                return "Emulation done."
         else:
-            return f"Hook unavailable for function {functionName}"
+            return f"Emulation failed.\n{emuHelper.getLastError()}"
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
-    
+
 
 @mcp.tool
 def getLastError() -> str:
