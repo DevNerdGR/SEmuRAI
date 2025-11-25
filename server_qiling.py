@@ -52,20 +52,22 @@ def getCurrentProgramName() -> str:
         return f"Error connecting to Ghidra: {str(e)}"
 
 @mcp.tool
-def readRegister(registerName : str) -> int:
-    """Reads the value in the specified register"""
+def readRegister(registerName : str, astype:str="raw") -> int:
+    """Reads the value in the specified register.
+    astype argument specifies if the returned value is represented as a raw value ("raw") pointer value ("addr").
+    """
     global bridge
     global emuSession
     try:
         if bridge is None or emuSession is None:
             return "Setup required before usage. Run setupEmulator()"
-        return emuSession.readRegister(registerName)
+        return (hex(emuSession.qilingToGhidraAddress(emuSession.readRegister(registerName))) if astype == "addr" else emuSession.readRegister(registerName))
     except Exception as e:
         return f"Error: {str(e)}"
 
 @mcp.tool
 def writeRegister(value : int, registerName : str) -> None:
-    """Writes the value in the specified register. Take note of endianess"""
+    """Writes the value in the specified register. Take note of endianess."""
     global bridge
     global emuSession
     try:

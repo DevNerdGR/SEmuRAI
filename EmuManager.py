@@ -3,18 +3,35 @@ Makes use of Qiling emulaton framework
 """
 from qiling import *
 from qiling.extensions import pipe
+import lief
+import io
+import sys
 import os
 
 class RootFS:
     _base = "/Resources/QilingRootFsTemplates/rootfs/"
     x8664_linux_rootFS = _base + "x8664_linux_glibc2.39/"
+    x8664_windows_rootFS = _base + "x8664_windows/"
+    x8664_macos_rootFS = _base + "x8664_macos/"
 
 
 class QilingSession:
     def __init__(self, pathToBinary: str, pathToRootFS: str, ghidraBaseAddr: int, args: list=[]):
+        type = lief.parse(pathToBinary).format
+        """
+        if type ==  "ELF":
+            rfs = RootFS.x8664_linux_rootFS
+        elif type == "MACHO":
+            rfs = RootFS.x8664_macos_rootFS
+        elif type == "PE":
+            rfs = RootFS.x8664_windows_rootFS
+        else:
+            raise Exception("Binary format unknown!")
+        """
+
         self.ql = Qiling(
             [pathToBinary] + args,
-            rootfs=os.path.dirname(os.path.abspath(__file__)) + pathToRootFS    
+            rootfs=os.path.dirname(os.path.abspath(__file__)) + pathToRootFS
         )
         self.ghidraBase = ghidraBaseAddr
         self.hookedAddrs = dict()
