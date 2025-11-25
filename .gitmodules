@@ -1,0 +1,6 @@
+[submodule "Resources/QilingRootFsTemplates/Resources/QilingRootFsTemplate"]
+	path = Resources/QilingRootFsTemplates/Resources/QilingRootFsTemplate
+	url = https://github.com/qilingframework/rootfs.git
+[submodule "Resources/QilingRootFsTemplates"]
+	path = Resources/QilingRootFsTemplates
+	url = https://github.com/qilingframework/rootfs.git
