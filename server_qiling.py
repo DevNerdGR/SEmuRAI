@@ -229,5 +229,17 @@ def getPC() -> str:
     except Exception as e:
         return f"Error: {str(e)}"
 
+@mcp.tool
+def readStdout() -> str:
+    """Read stdout stream."""
+    global bridge
+    global emuSession
+    try:
+        if bridge is None or emuSession is None:
+            return "Setup required before usage. Run setupEmulator()"
+        return str(emuSession.getStdout())
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 if __name__ == "__main__":
     mcp.run()
