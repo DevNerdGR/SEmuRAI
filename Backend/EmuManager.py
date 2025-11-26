@@ -4,8 +4,6 @@ Makes use of Qiling emulaton framework
 from qiling import *
 from qiling.extensions import pipe
 import lief
-import io
-import sys
 import os
 
 class RootFS:

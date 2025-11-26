@@ -52,7 +52,7 @@ def getCurrentProgramName() -> str:
         return f"Error connecting to Ghidra: {str(e)}"
 
 @mcp.tool
-def readRegister(registerName : str, astype:str="raw") -> int:
+def readRegister(registerName : str, astype:str="raw"):
     """Reads the value in the specified register.
     astype argument specifies if the returned value is represented as a raw value ("raw") pointer value ("addr").
     """
@@ -146,14 +146,14 @@ def removeBreakpoint(address : str) -> None:
         return f"Error: {str(e)}"
 
 @mcp.tool
-def getBreakpoints() -> set:
+def getBreakpoints() -> list:
     """Returns set containing addresses of breakpoints."""
     global bridge
     global emuSession
     try:
         if bridge is None or emuSession is None:
             return "Setup required before usage. Run setupEmulator()"
-        return emuSession.getBreakpoints()
+        return list(emuSession.getBreakpoints())
     except Exception as e:
         return f"Error connecting to Ghidra: {str(e)}"
 

@@ -2,3 +2,6 @@ fastmcp
 ghidra_bridge
 qiling
 lief
+openai
+rich
+openai-agents
