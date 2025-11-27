@@ -27,22 +27,25 @@ class AnalysisSession(ABC):
 
 class SimpleAnalysisSession(AnalysisSession):
     def __init__(self, api_key, endpoint, modelName):
+        load_dotenv()
         super().__init__(api_key, endpoint, modelName)
-        print(api_key)
+        #print(api_key)
         self.asyncLoop = asyncio.new_event_loop()
         self.client = OpenAI(api_key=api_key, base_url=endpoint)
+        self.modelName = modelName
         self.history = []
-        self.emuSession = MCPClientSession("Backend/SemuraiMCPServer.py", loop=self.asyncLoop)
+        self.emuSession = MCPClientSession("Backend/SemuraiMCPServer.py", command="fastmcp", preargs=["run"], args=["--no-banner", "--log-level", "CRITICAL"], loop=self.asyncLoop)
+        self.ghidraSession = MCPClientSession(os.getenv("GHIDRA_MCP_SERVER_PATH"), loop=self.asyncLoop)
     
-    def sendMessage(self, prompt, role, handleToolcalls:bool=True) -> Choice:
+    def sendMessage(self, prompt, role="user", handleToolcalls:bool=True) -> Choice:
         self.history.append({
             "role": role,
             "content": prompt
         })
         response = self.client.chat.completions.create(
-            model=modelName,
+            model=self.modelName,
             messages=self.history,
-            tools=self.emuSession.tools
+            tools=self.emuSession.tools + self.ghidraSession.tools
         )
         self.history.append({
             "role": Roles.assistant,
@@ -58,21 +61,21 @@ class SimpleAnalysisSession(AnalysisSession):
                     "role": Roles.toolResult,
                     "content": f"Call to {name} | Result: {res.content}"
                 })
-        return response.choices[0]
+        return response.choices[0].message.content if response.choices[0].message is not None else ""
     
     
 
 class MCPClientSession:
-    def __init__(self, serverPath, loop, command=None, args:list=[]):
+    def __init__(self, serverPath, loop, command="python3", preargs=list(), args=list()):
         self.session: Optional[ClientSession] = None
         self.exitStack = AsyncExitStack()
         self.loop = loop
-        self.loop.run_until_complete(self.connect(serverPath, command, args))
+        self.loop.run_until_complete(self.connect(serverPath, command, preargs=preargs, args=args))
 
-    async def connect(self, serverPath, command, args:list=[]):
+    async def connect(self, serverPath, command, preargs=[], args:list=[]):
         serverParams = StdioServerParameters(
-            command="python3",
-            args=[serverPath] + args,
+            command=command,
+            args= preargs + [serverPath] + args,
             env=None
         )
         stdioTransport = await self.exitStack.enter_async_context(stdio_client(serverParams))
@@ -83,7 +86,7 @@ class MCPClientSession:
 
         response = await self.session.list_tools()
         rawTools = response.tools
-        print("\nConnected to server with tools:", [tool.name for tool in rawTools])
+        #print("\nConnected to server with tools:", [tool.name for tool in rawTools])
         
         # Convert schema
         self.tools = []
@@ -108,14 +111,3 @@ class Roles:
     toolResult = "tool"
 
 
-load_dotenv()
-apiKey = os.getenv("LLM_API_KEY")
-endpoint = os.getenv("LLM_ENDPOINT")
-modelName = os.getenv("LLM_MODEL_NAME")
-
-s = SimpleAnalysisSession(apiKey, endpoint, modelName)
-m = s.sendMessage("what model are you?", role=Roles.user)
-print(m.message.content, end="\n\n")
-print(s.sendMessage("can you greet the mcp server?", role=Roles.user).message.content, end="\n\n")
-print(s.sendMessage("what did the server respond with?", role=Roles.user).message.content, end="\n\n")
-print(s.history)

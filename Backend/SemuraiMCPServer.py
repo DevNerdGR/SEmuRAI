@@ -2,7 +2,9 @@ from fastmcp import FastMCP
 import ghidra_bridge
 from EmuManager import QilingSession
 from EmuManager import RootFS
+import logging
 import os
+
 
 mcp = FastMCP(name="SEmuRAI (Qiling Backend)")
 

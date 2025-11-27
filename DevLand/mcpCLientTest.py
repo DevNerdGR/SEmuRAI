@@ -10,6 +10,8 @@ from mcp.client.stdio import stdio_client
 from dotenv import load_dotenv
 from rich import print
 
+from Backend.LLMInterface import SimpleAnalysisSession
+
 load_dotenv()
 
 api_key = os.getenv("LLM_API_KEY")
@@ -87,4 +89,18 @@ response = client.chat.completions.create(
 )
 
 print(response)
+
+
+
+
+load_dotenv()
+apiKey = os.getenv("LLM_API_KEY")
+endpoint = os.getenv("LLM_ENDPOINT")
+modelName = os.getenv("LLM_MODEL_NAME")
+
+s = SimpleAnalysisSession(apiKey, endpoint, modelName)
+print(s.sendMessage("what model are you?", role=Roles.user).message.content, end="\n\n")
+print(s.sendMessage("can you greet the mcp server?", role=Roles.user).message.content, end="\n\n")
+print(s.sendMessage("what tools do you have?", role=Roles.user).message.content, end="\n\n")
+#print(s.history)
 

@@ -8,6 +8,16 @@ def printBanner(console: Console):
 def printSetupSteps(console: Console):
     console.print(steps, style=styleTypes.prompt)
 
+def getPrompt(name):
+    with open(f"Prompts/{name}.txt") as f:
+        return f.read()
+
+def getUserPrompt(console: Console, prompt="Your prompt"):
+    return console.input(f"[bold]{prompt}>[/bold] ")
+
+def printMsgLLM(console: Console, text):
+    return console.print(f"\n[bold]LLM>[/bold] {text}\n", style=styleTypes.llm)
+
 banner = r"""
     _______. _______ .___  ___.  __    __  .______          ___       __  
     /       ||   ____||   \/   | |  |  |  | |   _  \        /   \     |  | 
@@ -32,5 +42,7 @@ steps = r"""
 class styleTypes:
     info = "cyan"
     warning = "magenta"
-    error = "red"
+    error = "red bold"
     prompt = "white"
+    llm = "yellow"
+
