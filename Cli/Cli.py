@@ -2,8 +2,8 @@ import argparse
 import os
 import xml.etree.ElementTree as ET
 from dotenv import load_dotenv
-from cliUtils import styleTypes as st
-from cliUtils import *
+from CliUtils import styleTypes as st
+from CliUtils import *
 from rich.console import Console
 from rich.panel import Panel
 
@@ -19,15 +19,19 @@ printBanner(cs) if args.pretty else None
 
 
 load_dotenv(".env")
+
+apiKey, endpoint, modelName = None, None, None
 try:
     cs.print("Loading .env variables...", style=st.info)
     apiKey = os.getenv("LLM_API_KEY")
     endpoint = os.getenv("LLM_ENDPOINT")
+    modelName = os.getenv("LLM_MODEL_NAME")
     cs.print("Load .env variables ok.", style=st.info)
 except Exception as e:
     cs.print("Unable to load .env variables!", style=st.warning)
-    apiKey = cs.input("Enter API key: ").strip()
-    endpoint = cs.input("Enter endpoint: ").strip()
+    apiKey = cs.input("Enter API key: ").strip() if apiKey is None else True
+    endpoint = cs.input("Enter endpoint: ").strip() if endpoint is None else True
+    modelName = cs.input("Enter model name: ").strip() if modelName is None else True
 
 printSetupSteps(cs)
 cs.input("Press enter when ready.\n")

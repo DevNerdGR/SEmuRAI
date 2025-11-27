@@ -63,7 +63,7 @@ class MCPClient:
 
 async def main():
     c = MCPClient()
-    await c.connect_to_server("/home/user/Documents/Projects/SEmuRAI/server_qiling.py")
+    await c.connect_to_server("/home/user/Documents/Projects/SEmuRAI/Backend/SemuraiMCPServer.py")
     await c.cleanup()
     return c.tools
 
@@ -82,10 +82,9 @@ for tool in tools:
 
 response = client.chat.completions.create(
     model="DeepSeek-V3-0324",
-    messages=[{"role": "user", "content": "what mcp tools do you have access to? answer in a concise list. next, i want you to greet the tool"}],
+    messages=[{"role": "user", "content": "say yay, then call the greet functioon twice"}],
     tools=openai_tools
 )
 
-print(response.choices[0])
-
+print(response)
 

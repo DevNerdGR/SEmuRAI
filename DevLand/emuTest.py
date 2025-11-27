@@ -1,5 +1,5 @@
-from EmuManager import QilingSession
-from EmuManager import RootFS
+from Backend.EmuManager import QilingSession
+from Backend.EmuManager import RootFS
 import ghidra_bridge
 
 print(f"Root fs: {RootFS.x8664_linux_rootFS}")
