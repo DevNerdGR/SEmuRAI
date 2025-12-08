@@ -62,7 +62,7 @@ while True:
         cs.print(session.history, style=st.error)
         cs.print("\n\n")
     elif isCommand(inp, ["wd", "write-dump"]):
-        with open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.json") as f:
+        with open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.log.json") as f:
             f.write(session.history)
     else:
         res = session.sendMessage(inp)
