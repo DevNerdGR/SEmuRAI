@@ -12,11 +12,12 @@ api_key = os.getenv("LLM_API_KEY")
 base_url = os.getenv("LLM_ENDPOINT")  # Optional: for custom endpoints
 print(api_key)
 
+"""
 model = OpenAIResponsesModel(
     model="o3-mini",
     openai_client=AsyncOpenAI(api_key=api_key)
 )
-
+"""
 
 client = OpenAI(
     api_key=api_key,
@@ -29,7 +30,7 @@ client = OpenAI(
 # Send request with the prompt
 
 response = client.chat.completions.create(
-    model="gpt-4.1-mini",
+    model="DeepSeek-V3-0324",
     messages=[{"role": "user", "content": "what mcp tools do you have access to?"}],
     tools=[
         {
