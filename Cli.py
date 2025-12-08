@@ -1,6 +1,7 @@
 # TODO: FIX (REMOVE) MCP SERVER LOGS OUTPUT, ADD LOADING ICON WHEN WAITING FOR REPLY
 import argparse
 import os
+import readline
 from pathlib import Path
 from dotenv import load_dotenv
 from Utils.CliUtils import styleTypes as st
@@ -49,12 +50,15 @@ session = SimpleAnalysisSession(apiKey, endpoint, modelName)
 
 
 # Initial context setting
-printMsgLLM(cs, session.sendMessage(getPrompt("initContext").format(getUserPrompt(cs, "Your instructions for this task")), role=Roles.system))
+printMsgLLM(cs, session.sendMessage(getPrompt("initContext").format(binaryPath, getUserPrompt(cs, "Your instructions for this task")), role=Roles.system, handleToolcalls=False))
 
 while True:
     inp = getUserPrompt(cs)
-    if inp.strip().lower() == "q" or inp.strip().lower() == "quit": 
+    if isCommand(inp, ["q", "quit"]): 
         exit()
-
-    res = session.sendMessage(inp)
-    printMsgLLM(cs, res) if res is not None else cs.print("\nTool call done\n", style=st.info)
+    elif isCommand(inp, ["dd", "dump-debug"]):
+        cs.print(session.history, style=st.error)
+        cs.print("\n\n")
+    else:
+        res = session.sendMessage(inp)
+        printMsgLLM(cs, res) if res is not None else cs.print("\nTool call done\n", style=st.info)

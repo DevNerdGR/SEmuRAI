@@ -1,5 +1,6 @@
 from rich.console import Console
 from rich.panel import Panel
+from rich.markdown import Markdown
 
 def printBanner(console: Console):
     console.print(Panel(banner), justify="center", style="magenta")
@@ -13,10 +14,14 @@ def getPrompt(name):
         return f.read()
 
 def getUserPrompt(console: Console, prompt="Your prompt"):
-    return console.input(f"[bold]{prompt}>[/bold] ")
+    console.print(f"[bold green]{prompt}>[/bold green] ", end="", style=styleTypes.userTag)
+    return console.input("")
 
 def printMsgLLM(console: Console, text):
-    return console.print(f"\n[bold]LLM>[/bold] {text}\n", style=styleTypes.llm)
+    console.print(f"\n\n[bold]LLM>[/bold] ", style=styleTypes.llm, end="")
+    md = Markdown(text) if text is not None else ""
+    console.print(md)
+    console.print("\n")
 
 banner = r"""
     _______. _______ .___  ___.  __    __  .______          ___       __  
@@ -44,5 +49,8 @@ class styleTypes:
     warning = "magenta"
     error = "red bold"
     prompt = "white"
+    userTag = "green bold"
     llm = "yellow"
 
+def isCommand(inp, validOptions):
+    return inp.strip().lower() in validOptions

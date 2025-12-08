@@ -36,6 +36,8 @@ class SimpleAnalysisSession(AnalysisSession):
         self.history = []
         self.emuSession = MCPClientSession("Backend/SemuraiMCPServer.py", command="fastmcp", preargs=["run"], args=["--no-banner", "--log-level", "CRITICAL"], loop=self.asyncLoop)
         self.ghidraSession = MCPClientSession(os.getenv("GHIDRA_MCP_SERVER_PATH"), loop=self.asyncLoop)
+
+        self.emuSession.tools
     
     def sendMessage(self, prompt, role="user", handleToolcalls:bool=True) -> Choice:
         self.history.append({
@@ -56,11 +58,19 @@ class SimpleAnalysisSession(AnalysisSession):
             for call in response.choices[0].message.tool_calls:
                 name = call.function.name
                 args = json.loads(call.function.arguments)
-                res = self.asyncLoop.run_until_complete(self.emuSession.session.call_tool(name, args))
+
+                if name in self.emuSession.toolNames:
+                    res = self.asyncLoop.run_until_complete(self.emuSession.session.call_tool(name, args))
+                elif name in self.ghidraSession.toolNames:
+                    res = self.asyncLoop.run_until_complete(self.ghidraSession.session.call_tool(name, args))
+                else:
+                    res = DummyContent(name) # Represents invalid tool calls
+
                 self.history.append({
                     "role": Roles.toolResult,
                     "content": f"Call to {name} | Result: {res.content}"
                 })
+                return self.sendMessage("Tool call done.", role=Roles.system, handleToolcalls=True) # Enable recursive tool calling
         return response.choices[0].message.content if response.choices[0].message is not None else ""
     
     
@@ -90,6 +100,7 @@ class MCPClientSession:
         
         # Convert schema
         self.tools = []
+        self.toolNames = [] # For convenience
         for tool in rawTools:
             self.tools.append({
                 "type": "function",
@@ -99,7 +110,11 @@ class MCPClientSession:
                     "parameters": tool.inputSchema
                 }
             })
+            self.toolNames.append(tool.name)
 
+class DummyContent:
+    def __init__(self, toolName):
+        self.content = f"Invalid call to tool {toolName}. Tool unavailable/does not exist."
 
 class Roles:
     system = "system"

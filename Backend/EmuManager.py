@@ -7,7 +7,7 @@ import lief
 import os
 
 class RootFS:
-    _base = "/Resources/QilingRootFsTemplates/"
+    _base = "/../Resources/QilingRootFsTemplates/"
     x8664_linux_rootFS = _base + "x8664_linux_glibc2.39/"
     x8664_windows_rootFS = _base + "x8664_windows/"
     x8664_macos_rootFS = _base + "x8664_macos/"
