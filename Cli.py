@@ -62,8 +62,8 @@ while True:
         cs.print(session.history, style=st.error)
         cs.print("\n\n")
     elif isCommand(inp, ["wd", "write-dump"]):
-        with open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.log.json") as f:
-            f.write(session.history)
+        with Console(file=open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.log", "w+")) as f:
+            f.print(session.history)
     else:
         res = session.sendMessage(inp)
         printMsgLLM(cs, res) if res is not None else cs.print("\nTool call done\n", style=st.info)
