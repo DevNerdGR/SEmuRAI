@@ -4,6 +4,7 @@ Makes use of Qiling emulaton framework
 from qiling import *
 from qiling.extensions import pipe
 import lief
+from lief import Binary, Header
 import os
 import io
 
@@ -16,17 +17,17 @@ class RootFS:
 
 class QilingSession:
     def __init__(self, pathToBinary: str, pathToRootFS: str, ghidraBaseAddr: int, args: list=[]):
-        type = lief.parse(pathToBinary).format
-        """
-        if type ==  "ELF":
+        platform = lief.parse(pathToBinary).format
+        
+        if platform == Binary.FORMATS.ELF:
             rfs = RootFS.x8664_linux_rootFS
-        elif type == "MACHO":
+        elif platform == Binary.FORMATS.MACHO:
             rfs = RootFS.x8664_macos_rootFS
-        elif type == "PE":
+        elif platform == Binary.FORMATS.PE:
             rfs = RootFS.x8664_windows_rootFS
         else:
             raise Exception("Binary format unknown!")
-        """
+        
 
         self.ql = Qiling(
             [pathToBinary] + args,
