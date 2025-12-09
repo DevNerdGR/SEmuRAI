@@ -5,6 +5,7 @@ from qiling import *
 from qiling.extensions import pipe
 import lief
 import os
+import io
 
 class RootFS:
     _base = "/../Resources/QilingRootFsTemplates/"
@@ -35,6 +36,7 @@ class QilingSession:
         self.hookedAddrs = dict()
         self.outStream = pipe.SimpleOutStream(0)
         self.ql.os.stdout = self.outStream
+        self.ql.os.stdin = pipe.SimpleInStream(0)
         self.firstRun = True
         
     
@@ -102,4 +104,4 @@ class QilingSession:
 
     def getStdout(self):
         return self.outStream.read()
-
+    

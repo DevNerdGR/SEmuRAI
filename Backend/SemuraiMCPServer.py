@@ -4,6 +4,7 @@ from EmuManager import QilingSession
 from EmuManager import RootFS
 import logging
 import os
+import codecs
 
 
 mcp = FastMCP(name="SEmuRAI (Qiling Backend)")
@@ -244,6 +245,8 @@ def readStdout() -> str:
         return str(emuSession.getStdout())
     except Exception as e:
         return f"Error: {str(e)}"
+
+
 
 if __name__ == "__main__":
     mcp.run()
