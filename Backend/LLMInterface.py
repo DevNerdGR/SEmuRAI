@@ -36,8 +36,7 @@ class SimpleAnalysisSession(AnalysisSession):
         self.history = []
         self.emuSession = MCPClientSession("Backend/SemuraiMCPServer.py", command="fastmcp", preargs=["run"], args=["--no-banner", "--log-level", "CRITICAL"], loop=self.asyncLoop)
         self.ghidraSession = MCPClientSession(os.getenv("GHIDRA_MCP_SERVER_PATH"), loop=self.asyncLoop)
-
-        self.emuSession.tools
+        self.cyberchefSession = MCPClientSession("CyberChefMCP/cyberchef_api_mcp_server/__main__.py", loop=self.asyncLoop)
     
     def sendMessage(self, prompt, role="user", handleToolcalls:bool=True) -> Choice:
         self.history.append({
@@ -47,7 +46,7 @@ class SimpleAnalysisSession(AnalysisSession):
         response = self.client.chat.completions.create(
             model=self.modelName,
             messages=self.history,
-            tools=self.emuSession.tools + self.ghidraSession.tools
+            tools=self.emuSession.tools + self.ghidraSession.tools + self.cyberchefSession.tools
         )
         self.history.append({
             "role": Roles.assistant,
@@ -63,6 +62,8 @@ class SimpleAnalysisSession(AnalysisSession):
                     res = self.asyncLoop.run_until_complete(self.emuSession.session.call_tool(name, args))
                 elif name in self.ghidraSession.toolNames:
                     res = self.asyncLoop.run_until_complete(self.ghidraSession.session.call_tool(name, args))
+                elif name in self.cyberchefSession.toolNames:
+                    res = self.asyncLoop.run_until_complete(self.cyberchefSession.session.call_tool(name, args))
                 else:
                     res = DummyContent(name) # Represents invalid tool calls
 

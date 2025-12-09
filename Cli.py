@@ -2,6 +2,7 @@
 import argparse
 import os
 import readline
+import subprocess
 from pathlib import Path
 from dotenv import load_dotenv
 from Utils.CliUtils import styleTypes as st
@@ -46,6 +47,7 @@ if (not(binaryPath.exists() and  binaryPath.is_file())) and (str(binaryPath) != 
     exit(1)
 cs.print("Agent ready.\n", style=st.info)
 
+ccSession = subprocess.Popen(["npm", "run", "start"], cwd="CyberChefServer/", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 session = SimpleAnalysisSession(apiKey, endpoint, modelName)
 
 
@@ -72,3 +74,5 @@ except Exception as e:
 except KeyboardInterrupt:
     writeLog(modelName, session)
     cs.print("Keyboard interrupt.", style=st.error)
+finally:
+    ccSession.terminate()

@@ -7,3 +7,6 @@
 [submodule "CyberChefMCP"]
 	path = CyberChefMCP
 	url = https://github.com/slouchd/cyberchef-api-mcp-server.git
+[submodule "CyberChefServer"]
+	path = CyberChefServer
+	url = https://github.com/gchq/CyberChef-server.git

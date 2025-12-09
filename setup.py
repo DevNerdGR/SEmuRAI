@@ -17,11 +17,11 @@ args = parser.parse_args()
 if not args.no_dependencies:
     print("===== Dependencies installation =====")
     cmd = [sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--break-system-packages"] if args.break_system_packages else [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    subprocess.check_call(["npm", "install"], cwd="CyberChefServer/")
     print("===== Done. =====\n\n")
 
 print("===== .env setup =====")
-if not (Path(".env").exists() and input(".env file detected. Override? (y/n) ").strip().lower() == "N"):
+if not (Path(".env").exists() and input(".env file detected. Override? (y/n) ").strip().lower() == "n"):
     apikey = input("LLM API key: ").strip()
     endpoint = input("LLM endpoint (base URL): ").strip()
     modelName = input("Desired LLM model name: ").strip()
@@ -32,4 +32,5 @@ if not (Path(".env").exists() and input(".env file detected. Override? (y/n) ").
         f.write(f"LLM_ENDPOINT={endpoint}\n")
         f.write(f"LLM_MODEL_NAME={modelName}\n")
         f.write(f"GHIDRA_MCP_SERVER_PATH={ghidraMCPPath}")
+
 print("===== Done. =====")
