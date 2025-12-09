@@ -4,3 +4,6 @@
 [submodule "Resources/QilingRootFsTemplates"]
 	path = Resources/QilingRootFsTemplates
 	url = https://github.com/qilingframework/rootfs.git
+[submodule "CyberChefMCP"]
+	path = CyberChefMCP
+	url = https://github.com/slouchd/cyberchef-api-mcp-server.git
