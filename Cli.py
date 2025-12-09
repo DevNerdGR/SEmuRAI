@@ -10,7 +10,6 @@ from rich.console import Console
 from rich.panel import Panel
 from Backend.LLMInterface import SimpleAnalysisSession
 from Backend.LLMInterface import Roles
-from datetime import datetime
 
 
 
@@ -53,17 +52,23 @@ session = SimpleAnalysisSession(apiKey, endpoint, modelName)
 
 # Initial context setting
 printMsgLLM(cs, session.sendMessage(getPrompt("initContext").format(binaryPath, getUserPrompt(cs, "Your instructions for this task")), role=Roles.system, handleToolcalls=False))
-
-while True:
-    inp = getUserPrompt(cs)
-    if isCommand(inp, ["q", "quit"]): 
-        exit()
-    elif isCommand(inp, ["dd", "dump-debug"]):
-        cs.print(session.history, style=st.error)
-        cs.print("\n\n")
-    elif isCommand(inp, ["wd", "write-dump"]):
-        with Console(file=open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.log", "w+")) as f:
-            f.print(session.history)
-    else:
-        res = session.sendMessage(inp)
-        printMsgLLM(cs, res) if res is not None else cs.print("\nTool call done\n", style=st.info)
+try:
+    while True:
+        inp = getUserPrompt(cs)
+        if isCommand(inp, ["q", "quit"]): 
+            exit()
+        elif isCommand(inp, ["dd", "dump-debug"]):
+            cs.print(session.history, style=st.error)
+            cs.print("\n\n")
+        elif isCommand(inp, ["wd", "write-dump"]):
+            writeLog(modelName, session)
+        else:
+            res = session.sendMessage(inp)
+            printMsgLLM(cs, res) if res is not None else cs.print("\nTool call done\n", style=st.info)
+except Exception as e:
+    writeLog(modelName, session)
+    cs.print("Error encountered:", style=st.error)
+    cs.print(e)
+except KeyboardInterrupt:
+    writeLog(modelName, session)
+    cs.print("Keyboard interrupt.", style=st.error)

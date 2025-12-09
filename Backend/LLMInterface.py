@@ -51,7 +51,7 @@ class SimpleAnalysisSession(AnalysisSession):
         )
         self.history.append({
             "role": Roles.assistant,
-            "content": response.choices[0].message.content
+            "content": response.choices[0].message.content if response.choices[0].message.content is not None else "" 
         })
 
         if handleToolcalls and (response.choices[0].message.tool_calls is not None):
@@ -67,7 +67,7 @@ class SimpleAnalysisSession(AnalysisSession):
                     res = DummyContent(name) # Represents invalid tool calls
 
                 self.history.append({
-                    "role": Roles.toolResult,
+                    "role": Roles.system, #Roles.toolResult, # CHANGED FOR COMPATIBILITY WITH OPENAI MODELS!
                     "content": f"Call to {name} | Result: {res.content}"
                 })
                 return self.sendMessage("Tool call done.", role=Roles.system, handleToolcalls=True) # Enable recursive tool calling

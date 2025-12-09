@@ -1,6 +1,8 @@
 from rich.console import Console
 from rich.panel import Panel
 from rich.markdown import Markdown
+from datetime import datetime
+
 
 def printBanner(console: Console):
     console.print(Panel(banner), justify="center", style="magenta")
@@ -54,3 +56,8 @@ class styleTypes:
 
 def isCommand(inp, validOptions):
     return inp.strip().lower() in validOptions
+
+def writeLog(modelName, session):
+    with Console(file=open(f"Logs/SEmuRAI_ChatDump_{datetime.now().strftime("%H-%M-%S_%Y-%m-%d")}.log", "w+")) as f:
+                f.print(f"MODEL: {modelName}\n\n")
+                f.print(session.history)
