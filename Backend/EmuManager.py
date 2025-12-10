@@ -4,26 +4,35 @@ Makes use of Qiling emulaton framework
 from qiling import *
 from qiling.extensions import pipe
 import lief
-from lief import Binary, Header
+from lief import Binary, ELF, MachO, PE
 import os
 import io
 
 class RootFS:
     _base = "/../Resources/QilingRootFsTemplates/"
     x8664_linux_rootFS = _base + "x8664_linux_glibc2.39/"
+    arm_linux_rootFS = _base + "arm_linux/"
     x8664_windows_rootFS = _base + "x8664_windows/"
     x8664_macos_rootFS = _base + "x8664_macos/"
 
 
 class QilingSession:
-    def __init__(self, pathToBinary: str, pathToRootFS: str, ghidraBaseAddr: int, args: list=[]):
-        platform = lief.parse(pathToBinary).format
+    def __init__(self, pathToBinary: str, ghidraBaseAddr: int, args: list=[]):
+        bin = lief.parse(pathToBinary)
         
-        if platform == Binary.FORMATS.ELF:
-            rfs = RootFS.x8664_linux_rootFS
-        elif platform == Binary.FORMATS.MACHO:
+        if bin.format == Binary.FORMATS.ELF:
+            arch = bin.header.machine_type
+            if arch == lief.ELF.ARCH.X86_64:
+                rfs = RootFS.x8664_linux_rootFS
+                print("AAY")
+            elif arch == lief.ELF.ARCH.ARM or arch == lief.ELF.ARCH.AARCH64:
+                rfs = RootFS.arm_linux_rootFS
+                print("YAY")
+            else:
+                raise Exception("Binary format unknown!")
+        elif bin.format == Binary.FORMATS.MACHO:
             rfs = RootFS.x8664_macos_rootFS
-        elif platform == Binary.FORMATS.PE:
+        elif bin.format == Binary.FORMATS.PE:
             rfs = RootFS.x8664_windows_rootFS
         else:
             raise Exception("Binary format unknown!")
@@ -31,7 +40,7 @@ class QilingSession:
 
         self.ql = Qiling(
             [pathToBinary] + args,
-            rootfs=os.path.dirname(os.path.abspath(__file__)) + pathToRootFS
+            rootfs=os.path.dirname(os.path.abspath(__file__)) + rfs
         )
         self.ghidraBase = ghidraBaseAddr
         self.hookedAddrs = dict()

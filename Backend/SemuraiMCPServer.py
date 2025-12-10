@@ -37,7 +37,7 @@ def setupEmulator(pathToBinary: str):
         if currentProgram is None:
             return "No program currently loaded in Ghidra"
         
-        emuSession = QilingSession(pathToBinary, RootFS.x8664_linux_rootFS, int(currentProgram.getImageBase().toString(), 16))      
+        emuSession = QilingSession(pathToBinary, int(currentProgram.getImageBase().toString(), 16))      
         
         return "Emulator session set up."
     except Exception as e:
