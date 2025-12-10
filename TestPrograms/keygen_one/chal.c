@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
 
     printf("Keygen for user %s (UID=%d)\n", u.name, u.UID);
 
+    // Correct uid is 8888, name is Warrior
     int key = gen(u);
-
     if (key == 57156 && strcmp(u.name, "Warrior") == 0) {
         printf("Good hunting. %d\n", key);
     } else {
