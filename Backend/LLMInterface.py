@@ -46,7 +46,8 @@ class SimpleAnalysisSession(AnalysisSession):
         response = self.client.chat.completions.create(
             model=self.modelName,
             messages=self.history,
-            tools=self.emuSession.tools + self.ghidraSession.tools + self.cyberchefSession.tools
+            tools=self.emuSession.tools + self.ghidraSession.tools + self.cyberchefSession.tools,
+            
         )
         self.history.append({
             "role": Roles.assistant,
@@ -57,20 +58,30 @@ class SimpleAnalysisSession(AnalysisSession):
             for call in response.choices[0].message.tool_calls:
                 name = call.function.name
                 args = json.loads(call.function.arguments)
-
-                if name in self.emuSession.toolNames:
-                    res = self.asyncLoop.run_until_complete(self.emuSession.session.call_tool(name, args))
-                elif name in self.ghidraSession.toolNames:
-                    res = self.asyncLoop.run_until_complete(self.ghidraSession.session.call_tool(name, args))
-                elif name in self.cyberchefSession.toolNames:
-                    res = self.asyncLoop.run_until_complete(self.cyberchefSession.session.call_tool(name, args))
+                if name.startswith("resource_"):
+                    if name.replace("resource_", "") == self.cyberchefSession.resourceNames[0]:
+                        res = self.asyncLoop.run_until_complete(self.cyberchefSession.session.read_resource(self.cyberchefSession.resources[0].uri))
+                        print(res)
+                        self.history.append({
+                            "role": Roles.system, #Roles.toolResult, # CHANGED FOR COMPATIBILITY WITH OPENAI MODELS!
+                            "content": f"Call to {name} | Result: {res.contents[0].text}"
+                        })
+                    else:
+                        res = DummyContent(name) # Represents invalid tool calls
                 else:
-                    res = DummyContent(name) # Represents invalid tool calls
+                    if name in self.emuSession.toolNames:
+                        res = self.asyncLoop.run_until_complete(self.emuSession.session.call_tool(name, args))
+                    elif name in self.ghidraSession.toolNames:
+                        res = self.asyncLoop.run_until_complete(self.ghidraSession.session.call_tool(name, args))
+                    elif name in self.cyberchefSession.toolNames:
+                        res = self.asyncLoop.run_until_complete(self.cyberchefSession.session.call_tool(name, args))
+                    else:
+                        res = DummyContent(name) # Represents invalid tool calls
 
-                self.history.append({
-                    "role": Roles.system, #Roles.toolResult, # CHANGED FOR COMPATIBILITY WITH OPENAI MODELS!
-                    "content": f"Call to {name} | Result: {res.content}"
-                })
+                    self.history.append({
+                        "role": Roles.system, #Roles.toolResult, # CHANGED FOR COMPATIBILITY WITH OPENAI MODELS!
+                        "content": f"Call to {name} | Result: {res.content}"
+                    })
                 return self.sendMessage("Tool call done.", role=Roles.system, handleToolcalls=True) # Enable recursive tool calling
         return response.choices[0].message.content if response.choices[0].message is not None else ""
     
@@ -97,10 +108,15 @@ class MCPClientSession:
 
         response = await self.session.list_tools()
         rawTools = response.tools
+        response = await self.session.list_resources()
+        self.resources = response.resources
+        response = await self.session.list_resource_templates()
+        rawResourceTemplates = response.resourceTemplates
         #print("\nConnected to server with tools:", [tool.name for tool in rawTools])
         
-        # Convert schema
+        # Convert schema (there is essentially no distinction between a "tool" and "resource" in the openai schema, except for different fields)
         self.tools = []
+
         self.toolNames = [] # For convenience
         for tool in rawTools:
             self.tools.append({
@@ -112,6 +128,22 @@ class MCPClientSession:
                 }
             })
             self.toolNames.append(tool.name)
+
+        self.resourceNames = [] # For convenience
+        for resource in self.resources:
+            self.tools.append({
+                "type": "function",
+                "function": {
+                    "name": f"resource_{resource.name}",
+                    "description": resource.description,
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                }
+            })
+            self.resourceNames.append(resource.name)
 
 class DummyContent:
     def __init__(self, toolName):

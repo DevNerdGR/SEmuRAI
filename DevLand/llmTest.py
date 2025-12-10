@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from openai import OpenAI, AsyncOpenAI
 from agents import Agent, Runner, OpenAIResponsesModel
 import subprocess, json
+from Backend.LLMInterface import *
 
 # Load environment variables from .env file
 load_dotenv(".env")
@@ -10,6 +11,7 @@ load_dotenv(".env")
 # Get API key from environment variables
 api_key = os.getenv("LLM_API_KEY")
 base_url = os.getenv("LLM_ENDPOINT")  # Optional: for custom endpoints
+name = os.getenv("LLM_MODEL_NAME") 
 print(api_key)
 
 """
@@ -25,28 +27,20 @@ client = OpenAI(
 )
 
 
+s = SimpleAnalysisSession(api_key=api_key, endpoint=base_url, modelName=name)
+
+
+
+
 
 # Initialize OpenAI clie
 # Send request with the prompt
 
-response = client.chat.completions.create(
-    model="DeepSeek-V3-0324",
-    messages=[{"role": "user", "content": "what mcp tools do you have access to?"}],
-    tools=[
-        {
-            "type": "mcp",
-            "server": {
-                "command": "python3",
-                "args": ["/home/user/Documents/Projects/SEmuRAI/server_qiling.py"],
-                "env": {}
-            }
-        }
-    ]
-)
-
+response = s.sendMessage("can you call the resource thing in cyberchef")
 
 # Print the response
-print(response.choices[0].message)
+print(response)
+
 """
 def load_mcp_tools_stdio():
     proc = subprocess.Popen(
