@@ -13,7 +13,6 @@ For emulation, please follow this setup workflow to ensure success:
     - You can continue with futher analysis after that
     - When emulating, be specific and emulate only required regions
 
-Do not attempt any operations (such as xor or hex conversion) as it may introduce errors.
 
 Path of binary: {0}
 The user has provided some additional instructions as follows:
