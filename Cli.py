@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# Cli.py
+
 # TODO: FIX (REMOVE) MCP SERVER LOGS OUTPUT, ADD LOADING ICON WHEN WAITING FOR REPLY
 import argparse
 import os
