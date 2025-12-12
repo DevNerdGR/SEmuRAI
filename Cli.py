@@ -54,7 +54,7 @@ session = SimpleAnalysisSession(apiKey, endpoint, modelName)
 
 
 # Initial context setting
-printMsgLLM(cs, session.sendMessage(getPrompt("initContext").format(binaryPath, getUserPrompt(cs, "Your instructions for this task")), role=Roles.system, handleToolcalls=False))
+printMsgLLM(cs, session.sendMessage(getPrompt("initContextSemurai").format(binaryPath, getUserPrompt(cs, "Your instructions for this task")), role=Roles.system, handleToolcalls=False))
 try:
     while True:
         inp = getUserPrompt(cs)
