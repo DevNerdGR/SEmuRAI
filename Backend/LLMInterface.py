@@ -72,7 +72,50 @@ class SimpleAnalysisSession(AnalysisSession):
                 })
                 return self.sendMessage("Tool call done.", role=Roles.system, handleToolcalls=True) # Enable recursive tool calling
         return response.choices[0].message.content if response.choices[0].message is not None else ""
+
+class StaticOnlyAnalysisSession(AnalysisSession):
+    def __init__(self, api_key, endpoint, modelName):
+        load_dotenv()
+        super().__init__(api_key, endpoint, modelName)
+        #print(api_key)
+        self.asyncLoop = asyncio.new_event_loop()
+        self.client = OpenAI(api_key=api_key, base_url=endpoint)
+        self.modelName = modelName
+        self.history = []
+        self.ghidraSession = MCPClientSession(os.getenv("GHIDRA_MCP_SERVER_PATH"), loop=self.asyncLoop)
+
     
+    def sendMessage(self, prompt, role="user", handleToolcalls:bool=True) -> Choice:
+        self.history.append({
+            "role": role,
+            "content": prompt
+        })
+        response = self.client.chat.completions.create(
+            model=self.modelName,
+            messages=self.history,
+            tools=self.ghidraSession.tools
+        )
+        self.history.append({
+            "role": Roles.assistant,
+            "content": response.choices[0].message.content if response.choices[0].message.content is not None else "" 
+        })
+
+        if handleToolcalls and (response.choices[0].message.tool_calls is not None):
+            for call in response.choices[0].message.tool_calls:
+                name = call.function.name
+                args = json.loads(call.function.arguments)
+
+                if name in self.ghidraSession.toolNames:
+                    res = self.asyncLoop.run_until_complete(self.ghidraSession.session.call_tool(name, args))
+                else:
+                    res = DummyContent(name) # Represents invalid tool calls
+
+                self.history.append({
+                    "role": Roles.system, #Roles.toolResult, # CHANGED FOR COMPATIBILITY WITH OPENAI MODELS!
+                    "content": f"Call to {name} | Result: {res.content}"
+                })
+                return self.sendMessage("Tool call done.", role=Roles.system, handleToolcalls=True) # Enable recursive tool calling
+        return response.choices[0].message.content if response.choices[0].message is not None else ""
     
 
 class MCPClientSession:
