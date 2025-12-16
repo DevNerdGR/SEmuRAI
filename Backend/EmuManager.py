@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 Makes use of Qiling emulaton framework
 """
@@ -48,6 +49,7 @@ class QilingSession:
         self.ql.os.stdout = self.outStream
         self.ql.os.stdin = pipe.SimpleInStream(0)
         self.firstRun = True
+
         
     
     def ghidraToQilingAddress(self, ghidraAddress):

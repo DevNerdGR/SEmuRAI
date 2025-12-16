@@ -19,12 +19,13 @@ def greet(name : str) -> str:
     return f"Hello, {name}!! :))"
 
 @mcp.tool
-def setupEmulator(pathToBinary: str):
+def setupEmulator(pathToBinary: str, mainFunctionAddr: str):
     """
     RUN THIS BEFORE ANY EMULATION WORK!
     Running this will also cause emulation session to reset.
 
-    - pathToBinary argument refers to the absolute path referencing the binary loaded in ghidra on the user's system (not your, AI agent's, mounted disk). If in doubt, prompt the user for it. 
+    - pathToBinary argument refers to the absolute path referencing the binary loaded in ghidra on the user's system (not your, AI agent's, mounted disk). If in doubt, prompt the user for it.
+    - mainFunctionAddr refers to the address of the main function. Make sure address starts with 0x.
     """
     try:
         global bridge
@@ -37,9 +38,14 @@ def setupEmulator(pathToBinary: str):
         if currentProgram is None:
             return "No program currently loaded in Ghidra"
         
-        emuSession = QilingSession(pathToBinary, int(currentProgram.getImageBase().toString(), 16))      
+        emuSession = QilingSession(pathToBinary, int(currentProgram.getImageBase().toString(), 16))
+
+        emuSession.setBreakpoint(emuSession.ghidraToQilingAddress(int(mainFunctionAddr, 16)))
+        res = emuSession.runTillBreak()
+        if res[0]:
+            pc = hex(res[1])
         
-        return "Emulator session set up."
+        return f"Emulator session set up. PC at main function ({pc})"
     except Exception as e:
         return f"Error: {str(e)}"
 
