@@ -22,7 +22,6 @@ EMULATION WORKFLOW - FOLLOW EXACTLY:
    - Avoid unnecessary full-program emulation to save resources
 
 KEY PRINCIPLES:
-- Always run to main first (never emulate from entry point without initialization)
 - Be surgical - emulate minimal necessary code paths
 - Verify stack and register state before proceeding with analysis
 
@@ -36,10 +35,9 @@ PHASE 1 - STATIC ANALYSIS & RECON:
 
 PHASE 2 - DYNAMIC ANALYSIS (if needed):
 1. Setup emulator with proper architecture
-2. Initialize at main (MANDATORY)
-3. Set strategic breakpoints
-4. Trace execution with minimal runs
-5. Inspect runtime state at key points
+2. Set strategic breakpoints
+3. Trace execution with minimal runs
+4. Inspect runtime state at key points
 
 DECISION: Use static analysis first, dynamic only when:
 - Need runtime values (decryption keys, computed addresses)
