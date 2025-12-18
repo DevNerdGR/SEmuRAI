@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, RateLimitError
 from agents import Agent, Runner, OpenAIResponsesModel
 import subprocess, json
 
