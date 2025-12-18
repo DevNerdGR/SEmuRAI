@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "obf_ops.h"
 
-char ENC[20] = {0x16, 0x0, 0x8, 0x10, 0x17, 0x4, 0xc, 0x1e, 0x11, 0xd, 0x17, 0x0, 0x0, 0x3a, 0x1, 0x55, 0xb, 0x0, 0x18, 0x00};
+char ENC[23] = {0x16, 0x0, 0x8, 0x10, 0x17, 0x4, 0xc, 0x1e, 0x51, 0x3a, 0x6, 0x9, 0x0, 0x51, 0x17, 0x0, 0x1, 0x3a, 0x12, 0xa, 0x12, 0x18, 0x00};
 
 int check() {
     return 1 == 2;
@@ -11,16 +12,16 @@ int check() {
 int verify(char creds[10]) {
     int sum = 0;
     for (int i = 2; i < 10; i++) {
-        sum += creds[i];
+        sum = ADD(sum, creds[i]);
     }
     // First 2 bytes should be 0xde and 0xbb, name should be "samurai!"
     
-    return (((unsigned char) creds[0]) + ((unsigned char) creds[1])  == 409) && (sum == 787);
+    return ((ADD((unsigned char) creds[0], (unsigned char) creds[1])  == 409) && (sum == 787));
 }
 
 void getFlag(char code[10]) {
-    for (int i = 0; i < 19; i++) {
-        ENC[i] = ENC[i] ^ (((unsigned char) code[0]) ^ ((unsigned char) code[1]));
+    for (int i = 0; i < 22; i++) {
+        ENC[i] = XOR(ENC[i], XOR_2((unsigned char) code[0],  (unsigned char) code[1]));
     }
 }
 
