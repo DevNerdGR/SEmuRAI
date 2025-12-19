@@ -12,16 +12,16 @@ int check() {
 int verify(char creds[10]) {
     int sum = 0;
     for (int i = 2; i < 10; i++) {
-        sum = ADD(sum, creds[i]);
+        sum = sum + creds[i];
     }
     // First 2 bytes should be 0xde and 0xbb, name should be "samurai!"
     
-    return ((ADD((unsigned char) creds[0], (unsigned char) creds[1])  == 409) && (sum == 787));
+    return (((unsigned char) creds[0] + (unsigned char) creds[1]  == 409) && (sum == 787));
 }
 
 void getFlag(char code[10]) {
     for (int i = 0; i < 22; i++) {
-        ENC[i] = XOR(ENC[i], XOR_2((unsigned char) code[0],  (unsigned char) code[1]));
+        ENC[i] = ENC[i] ^ XOR_2((unsigned char) code[0],  (unsigned char) code[1]);
     }
 }
 
